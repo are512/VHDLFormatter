@@ -33,10 +33,16 @@ function main(options) {
                 reject(err);
             }
             const input_vhdl = data.toString('utf8');
-            const settings = new VHDLFormatter_1.BeautifierSettings(options.removeComments, options.removeReports, options.checkAlias, options.signAlignSettings, options.keyWordCase, options.typeCase, options.indentation, null, options.endOfLine);
+            const newlinesdict = {};
+            newlinesdict[";"] = options.newLineSemi;
+            newlinesdict["then"] = options.newLineThen;
+            newlinesdict["else"] = options.newLineElse;
+            const newLinesSetting = VHDLFormatter_1.ConstructNewLineSettings(newlinesdict);
+            const alignSettings = new VHDLFormatter_1.signAlignSettings(options.signAlignRegional, options.signAlignAll, options.signAlignMode, options.signAlignKeywords);
+            const settings = new VHDLFormatter_1.BeautifierSettings(options.removeComments, options.removeReports, options.checkAlias, alignSettings, options.keyWordCase, options.typeCase, options.indentation, newLinesSetting, options.endOfLine);
             const result = beautify(input_vhdl, settings);
             if (result.err !== null) {
-                console.error(`-- [ERROR]: could not beautify "${options.input}"`);
+                console.error(`-- [ERROR]: could not beautify "${options.inputFile}"`);
                 reject(err);
             }
             const output_vhdl = result.data;
@@ -45,19 +51,19 @@ function main(options) {
             }
             if (options.overwrite) {
                 const data = new Uint8Array(Buffer.from(output_vhdl));
-                fs.writeFile(options.input, data, (err) => {
+                fs.writeFile(options.inputFile, data, (err) => {
                     if (err) {
-                        console.error(`-- [ERROR]: could not save "${options.input}"`);
+                        console.error(`-- [ERROR]: could not save "${options.inputFile}"`);
                         reject(err);
                     }
                     else {
-                        console.log(`-- [INFO]: saved file "${options.input}"`);
+                        console.log(`-- [INFO]: saved file "${options.inputFile}"`);
                         resolve();
                     }
                 });
             }
             else {
-                console.error(`-- [INFO]: read file "${options.input}"`);
+                console.error(`-- [INFO]: read file "${options.inputFile}"`);
                 resolve();
             }
         });
@@ -71,13 +77,20 @@ function main(options) {
         .option('--indentation <blankstr>', 'Unit of the indentation.', '    ')
         .option('--end-of-line <eol>', 'Can set the line endings depending your platform.', '\r\n')
         .option('--inputFiles <path>', 'The input files that should be beautified')
+        .option('--sign-align-regional <bool>', '', 'false')
+        .option('--sign-align-all <bool>', 'Align all signs in the file', 'true')
+        .option('--sign-align-mode <casestr>', 'blank, local or global', '')
+        .option('--sign-align-keywords', 'keywords to be aligned', '')
+        .option('--new-line-semi <casestr>', 'NewLine or NoNewLine or None', 'NewLine')
+        .option('--new-line-then <casestr>', 'NewLine or NoNewLine or None', 'NewLine')
+        .option('--new-line-else <casestr>', 'NewLine or NoNewLine or None', 'NewLine')
         .option('--overwrite', '', '')
         .option('--debug', '', '')
         .option('--quiet', '', '')
         .option('--remove-comments', '', '')
         .option('--remove-reports', '', '')
         .option('--check-alias', '', '')
-        .version('0.0.1', '-v, --version');
+        .version('0.1.0', '-v, --version');
     let args = myCommander.parse(process.argv);
     args.inputFiles = args.args;
     if (args.inputFiles.length < 1) {

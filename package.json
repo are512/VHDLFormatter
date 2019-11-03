@@ -7,6 +7,7 @@
     "test": "tests"
   },
   "dependencies": {
+    "commander": "^4.0.0",
     "minimist": "^1.2.0"
   },
   "devDependencies": {

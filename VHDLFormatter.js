@@ -49,6 +49,7 @@ function ConstructNewLineSettings(dict) {
     }
     return settings;
 }
+exports.ConstructNewLineSettings = ConstructNewLineSettings;
 String.prototype.regexCount = function (pattern) {
     if (pattern.flags.indexOf("g") < 0) {
         pattern = new RegExp(pattern.source, pattern.flags + "g");
@@ -443,8 +444,7 @@ function AlignSign_(result, startIndex, endIndex, symbol, mode) {
         }
         else if ((mode != "local" && !line.startsWith(ILCommentPrefix) && line.length != 0)
             || (mode == "local")) {
-            if (startLine < i - 1) // if cannot find the symbol, a block of symbols ends
-             {
+            if (startLine < i - 1) {
                 AlignSign(result, startLine, i - 1, symbol, maxSymbolIndex, symbolIndices);
             }
             maxSymbolIndex = -1;
@@ -452,8 +452,7 @@ function AlignSign_(result, startIndex, endIndex, symbol, mode) {
             startLine = i;
         }
     }
-    if (startLine < endIndex) // if cannot find the symbol, a block of symbols ends
-     {
+    if (startLine < endIndex) {
         AlignSign(result, startLine, endIndex, symbol, maxSymbolIndex, symbolIndices);
     }
 }
