@@ -5,6 +5,14 @@
 VHDL CLI code formatter written in TypeScript.
 
 [Original online version https://g2384.github.io/VHDLFormatter/](https://g2384.github.io/VHDLFormatter/)
+## Requirements:
+
+ - sudo apt-get install curl
+ - curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash
+ - sudo apt-get install nodejs
+ - sudo apt install node-typescript
+ - sudo apt install mocha
+ - sudo apt install ruby-commander
 
 ## Usage:
 
@@ -14,21 +22,28 @@ node vhdlformat.js [OPTIONS] <filename 1> [filename 2] ... [filename N]
 
 ## Options:
 
-The following command line options are available:
+- The following command line options are available:
 
-  --key-word-case <casestr>  upper or lower-case the VHDL keywords (default: "uppercase")
-  --type-case <casestr>      upper or lower-case the VHDL types (default: "uppercase")
-  --indentation <blankstr>   Unit of the indentation. (default: "    ")
-  --end-of-line <eol>        Can set the line endings depending your platform. (default: "\r\n")
-  --inputFiles <path>        The input files that should be beautified
-  --overwrite
-  --debug
-  --quiet
-  --remove-comments
-  --remove-reports
-  --check-alias
-  -v, --version              output the version number
-  -h, --help                 output usage information
+-  --key-word-case <casestr>  upper or lower-case the VHDL keywords (default: "uppercase")
+-  --type-case <casestr>      upper or lower-case the VHDL types (default: "uppercase")
+-  --indentation <blankstr>   Unit of the indentation. (default: "    ")
+-  --end-of-line <eol>        Can set the line endings depending your platform. (default: "\r\n")
+-  --inputFiles <path>        The input files that should be beautified
+-  --sign-align-regional <bool> 
+-  --sign-align-all <bool>
+-  --sign-align-mode <casestr>
+-  --sign-align-keywords
+-  --new-line-semi <casestr>
+-  --new-line-then <casestr>
+-  --new-line-else <casestr>
+-  --overwrite
+-  --debug
+-  --quiet
+-  --remove-comments
+-  --remove-reports
+-  --check-alias
+-  -v, --version              output the version number
+-  -h, --help                 output usage information
   
 ## For contributors
 
