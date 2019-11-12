@@ -235,7 +235,7 @@ function beautify(input, settings) {
         input = arr.join("\r\n");
     }
     input = input.replace(/([a-zA-Z0-9\); ])\);(@@comments[0-9]+)?@@end/g, '$1\r\n);$2@@end');
-    input = input.replace(/[ ]?([&=:\-<>\+|\*])[ ]?/g, ' $1 ');
+    input = input.replace(/[ ]?([&=:\-\+|\*]|[<>]+)[ ]?/g, ' $1 ');
     input = input.replace(/(\d+e) +([+\-]) +(\d+)/g, '$1$2$3'); // fix exponential notation format broken by previous step
     input = input.replace(/[ ]?([,])[ ]?/g, '$1 ');
     input = input.replace(/[ ]?(['"])(THEN)/g, '$1 $2');
@@ -410,12 +410,27 @@ function beautifyPortGenericBlock(inputs, result, settings, startIndex, parentEn
 exports.beautifyPortGenericBlock = beautifyPortGenericBlock;
 function AlignSigns(result, startIndex, endIndex, mode) {
     AlignSign_(result, startIndex, endIndex, ":", mode);
+    AlignSign_(result, startIndex, endIndex, "IN", mode); //TEST NEW PART
     AlignSign_(result, startIndex, endIndex, ":=", mode);
     AlignSign_(result, startIndex, endIndex, "<=", mode);
     AlignSign_(result, startIndex, endIndex, "=>", mode);
     AlignSign_(result, startIndex, endIndex, "@@comments", mode);
 }
 exports.AlignSigns = AlignSigns;
+//TEST NEW PART
+function indexOfGroup(regex, input, group) {
+    var match = regex.exec(input);
+    if (match == null) {
+        return -1;
+    }
+    var ix= match.index;
+    for (let i = 1; i < group; i++) {
+        ix+= match[i].length;
+    }
+    return ix;
+}
+exports.indexOfGroup = indexOfGroup;
+//TEST NEW PART
 function AlignSign_(result, startIndex, endIndex, symbol, mode) {
     let maxSymbolIndex = -1;
     let symbolIndices = {};
@@ -428,32 +443,61 @@ function AlignSign_(result, startIndex, endIndex, symbol, mode) {
     ];
     let labelAndKeywordsStr = labelAndKeywords.join("|");
     let labelAndKeywordsRegex = new RegExp("(" + labelAndKeywordsStr + ")([^\\w]|$)");
-    for (let i = startIndex; i <= endIndex; i++) {
-        let line = result[i].Line;
-        if (symbol == ":" && line.regexStartsWith(labelAndKeywordsRegex)) {
-            continue;
-        }
-        let regex = new RegExp("([\\s\\w\\\\]|^)" + symbol + "([\\s\\w\\\\]|$)");
-        if (line.regexCount(regex) > 1) {
-            continue;
-        }
-        let colonIndex = line.regexIndexOf(regex);
-        if (colonIndex > 0) {
-            maxSymbolIndex = Math.max(maxSymbolIndex, colonIndex);
-            symbolIndices[i] = colonIndex;
-        }
-        else if ((mode != "local" && !line.startsWith(ILCommentPrefix) && line.length != 0)
-            || (mode == "local")) {
-            if (startLine < i - 1) {
-                AlignSign(result, startLine, i - 1, symbol, maxSymbolIndex, symbolIndices);
+//TEST NEW PART
+    if (symbol == "IN") {
+        for (let i = startIndex; i <= endIndex; i++) {
+            let line = result[i].Line;
+            let regex = new RegExp("(:\\s+)(IN|OUT|INOUT)(\\s+)(\\w)");
+            if (line.regexCount(regex) > 1) {
+                continue;
             }
-            maxSymbolIndex = -1;
-            symbolIndices = {};
-            startLine = i;
+            let colonIndex = indexOfGroup(regex, line, 4);
+            if (colonIndex > 0) {
+                maxSymbolIndex = Math.max(maxSymbolIndex, colonIndex);
+                symbolIndices[i] = colonIndex;
+            }
+            else if ((mode != "local" && !line.startsWith(ILCommentPrefix) && line.length != 0) || (mode == "local")) {
+                if (startLine < i - 1) {
+                    AlignSign(result, startLine, i - 1, symbol, maxSymbolIndex, symbolIndices);
+                }
+                maxSymbolIndex = -1;
+                symbolIndices = {};
+                startLine = i;
+            }
+        }
+        if (startLine < endIndex) {
+            AlignSign(result, startLine, endIndex, symbol, maxSymbolIndex, symbolIndices);
         }
     }
-    if (startLine < endIndex) {
-        AlignSign(result, startLine, endIndex, symbol, maxSymbolIndex, symbolIndices);
+//TEST NEW PART
+    else {
+        for (let i = startIndex; i <= endIndex; i++) {
+            let line = result[i].Line;
+            if (symbol == ":" && line.regexStartsWith(labelAndKeywordsRegex)) {
+                continue;
+            }
+            let regex = new RegExp("([\\s\\w\\\\]|^)" + symbol + "([\\s\\w\\\\]|$)");
+            if (line.regexCount(regex) > 1) {
+                continue;
+            }
+            let colonIndex = line.regexIndexOf(regex);
+            if (colonIndex > 0) {
+                maxSymbolIndex = Math.max(maxSymbolIndex, colonIndex);
+                symbolIndices[i] = colonIndex;
+            }
+            else if ((mode != "local" && !line.startsWith(ILCommentPrefix) && line.length != 0)
+                || (mode == "local")) {
+                if (startLine < i - 1) {
+                    AlignSign(result, startLine, i - 1, symbol, maxSymbolIndex, symbolIndices);
+                }
+                maxSymbolIndex = -1;
+                symbolIndices = {};
+                startLine = i;
+            }
+        }
+        if (startLine < endIndex) {
+            AlignSign(result, startLine, endIndex, symbol, maxSymbolIndex, symbolIndices);
+        }
     }
 }
 function AlignSign(result, startIndex, endIndex, symbol, maxSymbolIndex = -1, symbolIndices = {}) {
@@ -564,7 +608,10 @@ function beautify3(inputs, result, settings, startIndex, indent, endIndex) {
         "UNITS",
         "\\w+\\s+\\w+\\s+IS\\s+RECORD"
     ];
-    let blockEndsKeyWords = ["END", ".*\\)\\s*RETURN\\s+[\\w]+;"];
+    let blockEndsKeyWords = [
+        "END",
+        ".*\\)\\s*RETURN\\s+[\\w]+;"
+    ];
     let indentedEndsKeyWords = [ILIndentedReturnPrefix + "RETURN\\s+\\w+;"];
     let blockEndsWithSemicolon = [
         "(WITH\\s+[\\w\\s\\\\]+SELECT)",
@@ -605,6 +652,10 @@ function beautify3(inputs, result, settings, startIndex, indent, endIndex) {
             Mode = FormatMode.EndsWithSemicolon;
             [i, endIndex] = beautifySemicolonBlock(inputs, result, settings, i, endIndex, indent);
             Mode = modeCache;
+            continue;
+        }
+        if (input.regexStartsWith(/.*?\:=\s\(/)) {
+            [i, endIndex] = beautifyPortGenericBlock(inputs, result, settings, i, endIndex, indent, ":=");
             continue;
         }
         if (Mode != FormatMode.EndsWithSemicolon && input.regexStartsWith(regexblockEndsWithSemicolon)) {

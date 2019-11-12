@@ -39,7 +39,10 @@ function main(options) {
             newlinesdict["else"] = options.newLineElse;
             const newLinesSetting = VHDLFormatter_1.ConstructNewLineSettings(newlinesdict);
             const alignSettings = new VHDLFormatter_1.signAlignSettings(options.signAlignRegional, options.signAlignAll, options.signAlignMode, options.signAlignKeywords);
-            const settings = new VHDLFormatter_1.BeautifierSettings(options.removeComments, options.removeReports, options.checkAlias, alignSettings, options.keyWordCase, options.typeCase, options.indentation, newLinesSetting, options.endOfLine);
+            var endOfLine = options.endOfLine;
+            endOfLine = endOfLine.replace(/\\r/g, "\r");
+            endOfLine = endOfLine.replace(/\\n/g, "\n");
+            const settings = new VHDLFormatter_1.BeautifierSettings(options.removeComments, options.removeReports, options.checkAlias, alignSettings, options.keyWordCase, options.typeCase, options.indentation, newLinesSetting, endOfLine);
             const result = beautify(input_vhdl, settings);
             if (result.err !== null) {
                 console.error(`-- [ERROR]: could not beautify "${options.inputFile}"`);
