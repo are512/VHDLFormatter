@@ -256,6 +256,15 @@ function beautify(input, settings) {
     input = input.replace(keywordAndSignRegex, "$1 $2$3"); // `WHEN - 2` -> `WHEN -2`
     input = input.replace(/([,|]) +([+\-]) +(\w)/g, '$1 $2$3'); // `1, - 2)` -> `1, -2)`
     input = input.replace(/(\() +([+\-]) +(\w)/g, '$1$2$3'); // `( - 2)` -> `(-2)`
+//new part for proc indent    
+input = input.replace(/(.*)(PROCEDURE|FUNCTION|IMPURE FUNCTION)([\s\w]+)(\()([\s\w_;:,⨴]+)$/gm, '$1$2$3$4\r\n$5');
+//new part for proc indent
+    console.log(input);
+    let regex = new RegExp("(.*)(PROCEDURE|FUNCTION|IMPURE FUNCTION)([\\s\\w]+)(\\()([\\s\\w_;:,⨴]+)$", "gm");
+    var match = regex.exec(input);
+    if (match != null){
+    console.log("Success");
+    }
     arr = input.split("\r\n");
     let result = [];
     beautify3(arr, result, settings, 0, 0);
